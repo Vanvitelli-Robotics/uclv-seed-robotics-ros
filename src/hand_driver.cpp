@@ -36,7 +36,6 @@ public:
         protocol_version_ = this->declare_parameter<float>("protocol_version", 2.0);
         motor_ids_ = this->declare_parameter<std::vector<int64_t>>("motor_ids", std::vector<int64_t>());
 
-        // Define thresholds for each motor ID
         motor_thresholds_ = {
             {31, {0, 4095}},
             {32, {0, 4095}},
