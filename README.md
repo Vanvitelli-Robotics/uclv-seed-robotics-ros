@@ -11,11 +11,6 @@ This repository contains driver, in ROS2 and C++, for RH8D robotic hand by Seed 
 - [Installation](#installation)
 - [Dependencies](#dependencies)
 - [Additional Dependencies](#additional-dependencies)
-    - [Read Motors Positions Test](#read-motors-positions-test)
-    - [Move Finger Motor Test](#move-finger-motor-test)
-    - [Move Wrist Motor Test](#move-wrist-motor-test)
-    - [Read Finger Motor Positions Test](#read-finger-motor-positions-test)
-    - [Read Wrist Motor Positions Test](#read-wrist-motor-positions-test)
 - [License](#license)
 - [Authors](#authors)
 
