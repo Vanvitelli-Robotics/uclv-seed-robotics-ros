@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
-#include "uclv_seed_robotics_ros_interfaces/msg/motorpositions.hpp"
+#include "uclv_seed_robotics_ros_interfaces/msg/motor_positions.hpp"
 
 #include "uclv_dynamixel_utils/hand.hpp"
 
@@ -25,8 +25,8 @@ public:
 
     std::unordered_map<int64_t, std::pair<float, float>> motor_thresholds_;
 
-    rclcpp::Publisher<custom_msg::msg::Position>::SharedPtr publisher_;
-    rclcpp::Subscription<custom_msg::msg::Position>::SharedPtr subscription_;
+    rclcpp::Publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr publisher_;
+    rclcpp::Subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr subscription_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     HandDriver()
@@ -107,7 +107,7 @@ private:
         } 
         
 
-        auto message = custom_msg::msg::Position();
+        auto message = uclv_seed_robotics_ros_interfaces::msg::MotorPositions();
         message.positions.resize(motor_pos.size());
         message.ids = motor_ids_uint8t_vec;
         
@@ -119,7 +119,7 @@ private:
         publisher_->publish(message);
     }
 
-    void topic_callback(const custom_msg::msg::Position::SharedPtr pos)
+    void topic_callback(const uclv_seed_robotics_ros_interfaces::msg::MotorPositions::SharedPtr pos)
     {
         for (size_t i = 0; i < pos->ids.size(); ++i) {
             auto id = pos->ids[i];
