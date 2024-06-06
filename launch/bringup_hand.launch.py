@@ -18,7 +18,7 @@ def generate_launch_description():
         Node(
             output='screen',
             package="uclv_seed_robotics_ros",
-            # namespace =""
+            # namespace =''
             executable='sensors',
             parameters=[
                 {}
