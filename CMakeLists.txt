@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(uclv_rh8d_ros2_driver)
+project(uclv_seed_robotics_ros)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -8,16 +8,16 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(my_library REQUIRED)
-find_package(custom_msg REQUIRED)
+find_package(uclv_dynamixel_utils REQUIRED)
+find_package(uclv_seed_robotics_ros_interfaces REQUIRED)
 
 
-add_executable(hand_driver src/hand_driver.cpp)
+add_executable(hand_driver src/hand_driver_node.cpp)
 ament_target_dependencies(
   hand_driver
   "rclcpp"
-  "custom_msg"
-  "my_library"
+  "uclv_seed_robotics_ros_interfaces"
+  "uclv_dynamixel_utils"
 )
 
 install(TARGETS 

@@ -3,9 +3,11 @@
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
-#include "custom_msg/msg/position.hpp"
+#include "uclv_seed_robotics_ros_interfaces/msg/motorpositions.hpp"
 
-#include "my_library/hand.hpp"
+#include "uclv_dynamixel_utils/hand.hpp"
+
+using namespace uclv::dynamixel_utils;
 
 class HandDriver : public rclcpp::Node
 {
@@ -70,9 +72,9 @@ public:
             }
         }
 
-        publisher_ = this->create_publisher<custom_msg::msg::Position>("motor_state", 1);
+        publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>("motor_state", 1);
 
-        subscription_ = this->create_subscription<custom_msg::msg::Position>(
+        subscription_ = this->create_subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>(
             "/cmd/motor_position", 1,
             std::bind(&HandDriver::topic_callback, this, std::placeholders::_1)
         );
