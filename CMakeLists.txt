@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(uclv_dynamixel_utils REQUIRED)
 find_package(uclv_seed_robotics_ros_interfaces REQUIRED)
+find_package(serial REQUIRED)
 
 
 add_executable(hand_driver src/hand_driver_node.cpp)
@@ -20,8 +21,18 @@ ament_target_dependencies(
   "uclv_dynamixel_utils"
 )
 
+add_executable(sensors src/sensors_node.cpp)
+ament_target_dependencies(
+  sensors
+  "rclcpp"
+  "uclv_seed_robotics_ros_interfaces"
+  "uclv_dynamixel_utils"
+  "serial"
+)
+
 install(TARGETS 
       hand_driver
+      sensors
       DESTINATION 
         lib/${PROJECT_NAME})
 
