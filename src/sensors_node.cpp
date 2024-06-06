@@ -73,7 +73,7 @@ private:
     void write_on_serial(const std::string &cmd)
     {
         sensor_read_->write(cmd);
-        sensor_read_->waitByteTimes(10 * cmd.size());
+        sensor_read_->waitByteTimes(100 * cmd.size());
     }
 
     void publish_state()
