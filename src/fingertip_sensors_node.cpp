@@ -9,9 +9,8 @@
 
 #include "serial/serial.h"
 
-// using namespace uclv::dynamixel_utils;
 
-class TestReadFromSensors : public rclcpp::Node
+class FingertipSensors : public rclcpp::Node
 {
 public:
     rclcpp::Time time;
@@ -44,7 +43,7 @@ public:
                   << " result: " << SUCCESS_COLOR << result << CRESET << std::endl;
     }
 
-    TestReadFromSensors()
+    FingertipSensors()
         : Node("test_read_from_sensors")
     {
 
@@ -66,7 +65,7 @@ public:
 
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(millisecondsTimer_),
-            std::bind(&TestReadFromSensors::publish_state, this));
+            std::bind(&FingertipSensors::publish_state, this));
     }
 
 private:
@@ -136,7 +135,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        auto hand_driver_node = std::make_shared<TestReadFromSensors>();
+        auto hand_driver_node = std::make_shared<FingertipSensors>();
         rclcpp::spin(hand_driver_node);
     }
     catch (const std::exception &e)

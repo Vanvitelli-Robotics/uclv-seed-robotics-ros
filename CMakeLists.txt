@@ -25,9 +25,9 @@ ament_target_dependencies(
   "uclv_dynamixel_utils"
 )
 
-add_executable(sensors src/sensors_node.cpp)
+add_executable(fingertip_sensors src/fingertip_sensors_node.cpp)
 ament_target_dependencies(
-  sensors
+  fingertip_sensors
   "rclcpp"
   "uclv_seed_robotics_ros_interfaces"
   "uclv_dynamixel_utils"
@@ -36,7 +36,7 @@ ament_target_dependencies(
 
 install(TARGETS 
       hand_driver
-      sensors
+      fingertip_sensors
       DESTINATION 
         lib/${PROJECT_NAME})
 

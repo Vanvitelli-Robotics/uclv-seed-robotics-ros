@@ -19,7 +19,7 @@ def generate_launch_description():
             output='screen',
             package="uclv_seed_robotics_ros",
             # namespace =''
-            executable='sensors',
+            executable='fingertip_sensors', #####
             parameters=[
                 {}
             ]
