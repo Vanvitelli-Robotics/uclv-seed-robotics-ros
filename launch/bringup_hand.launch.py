@@ -7,7 +7,6 @@ def generate_launch_description():
         Node(
             output='screen',
             package='uclv_seed_robotics_ros',
-            # namespace='',
             executable='hand_driver',
             name='hand_driver',
             parameters=[
@@ -18,8 +17,7 @@ def generate_launch_description():
         Node(
             output='screen',
             package="uclv_seed_robotics_ros",
-            # namespace =''
-            executable='fingertip_sensors', #####
+            executable='fingertip_sensors',
             parameters=[
                 {}
             ]
