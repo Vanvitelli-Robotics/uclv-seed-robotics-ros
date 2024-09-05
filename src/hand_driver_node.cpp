@@ -79,7 +79,7 @@ public:
         publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>("motor_state", 1);
 
         subscription_ = this->create_subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>(
-            "/cmd/motor_position", 1,
+            "desired_position", 1,
             std::bind(&HandDriver::topic_callback, this, std::placeholders::_1));
 
         // Timer
