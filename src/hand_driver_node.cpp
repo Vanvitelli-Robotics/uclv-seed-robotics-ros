@@ -23,31 +23,24 @@ public:
     std::vector<int64_t> motor_ids_;
     std::vector<int64_t> motor_thresholds_;
 
+    std::string motor_state_topic_;
+    std::string desired_position_topic_;
+
     rclcpp::Publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr publisher_;
     rclcpp::Subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr subscription_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     HandDriver()
-        : Node("hand_driver")
+        : Node("hand_driver"),
+          millisecondsTimer_(this->declare_parameter<int>("millisecondsTimer", 2)),
+          serial_port_(this->declare_parameter<std::string>("serial_port", "/dev/ttyUSB0")),
+          baudrate_(this->declare_parameter<int>("baudrate", 1000000)),
+          protocol_version_(this->declare_parameter<float>("protocol_version", 2.0)),
+          motor_ids_(this->declare_parameter<std::vector<int64_t>>("motor_ids", std::vector<int64_t>())),
+          motor_thresholds_(this->declare_parameter<std::vector<int64_t>>("motor_thresholds", {0, 4095})),
+          motor_state_topic_(this->declare_parameter<std::string>("motor_state_topic", "motor_state")),
+          desired_position_topic_(this->declare_parameter<std::string>("desired_position_topic", "desired_position"))
     {
-        millisecondsTimer_ = this->declare_parameter<int>("millisecondsTimer", 2);
-        serial_port_ = this->declare_parameter<std::string>("serial_port", "/dev/ttyUSB0");
-        baudrate_ = this->declare_parameter<int>("baudrate", 1000000);
-        protocol_version_ = this->declare_parameter<float>("protocol_version", 2.0);
-        motor_ids_ = this->declare_parameter<std::vector<int64_t>>("motor_ids", std::vector<int64_t>());
-        motor_thresholds_ = this->declare_parameter<std::vector<int64_t>>("motor_thresholds", std::vector<int64_t>());
-
-        // motor_thresholds_ = {
-        //     {31, {0, 4095}},
-        //     {32, {0, 4095}},
-        //     {33, {0, 4095}},
-        //     {34, {0, 4095}},
-        //     {35, {0, 4095}},
-        //     {36, {0, 4095}},
-        //     {37, {0, 4095}},
-        //     {38, {0, 4095}}
-        // };
-
         hand_ = std::make_shared<Hand>(serial_port_, baudrate_, protocol_version_);
         hand_->setSerialPortLowLatency(serial_port_);
         if (!hand_->initialize())
@@ -55,12 +48,12 @@ public:
             throw std::runtime_error("Error: Hand not initialized");
         }
 
-        if (motor_ids_.size() == 0)
+        if (motor_ids_.empty())
         {
             throw std::runtime_error("Error: Motor IDs parameter is empty");
         }
         for (const auto &id : motor_ids_)
-        { // forse check su id da 31 a 38
+        {
             if (id <= 0 || id >= 255)
             {
                 RCLCPP_ERROR(this->get_logger(), "Invalid motor ID: %ld. Must be between 1 and 254.", id);
@@ -76,10 +69,10 @@ public:
             }
         }
 
-        publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>("motor_state", 1);
+        publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>(motor_state_topic_, 1);
 
         subscription_ = this->create_subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>(
-            "desired_position", 1,
+            desired_position_topic_, 1,
             std::bind(&HandDriver::topic_callback, this, std::placeholders::_1));
 
         // Timer
