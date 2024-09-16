@@ -12,23 +12,23 @@ using namespace uclv::dynamixel_utils;
 class HandDriver : public rclcpp::Node
 {
 public:
-    std::shared_ptr<Hand> hand_;
-    dynamixel::PortHandler *portHandler;
-    dynamixel::PacketHandler *packetHandler;
+    std::shared_ptr<Hand> hand_;               // Shared pointer to Hand object
+    dynamixel::PortHandler *portHandler;       // Dynamixel PortHandler
+    dynamixel::PacketHandler *packetHandler;   // Dynamixel PacketHandler
 
-    int millisecondsTimer_;
-    std::string serial_port_;
-    int baudrate_;
-    float protocol_version_;
-    std::vector<int64_t> motor_ids_;
-    std::vector<int64_t> motor_thresholds_;
+    int millisecondsTimer_;                    // Timer duration in milliseconds
+    std::string serial_port_;                  // Serial port for communication
+    int baudrate_;                             // Baudrate for communication
+    float protocol_version_;                   // Protocol version for communication
+    std::vector<int64_t> motor_ids_;           // List of motor IDs
+    std::vector<int64_t> motor_thresholds_;    // Thresholds for motor positions
 
-    std::string motor_state_topic_;
-    std::string desired_position_topic_;
+    std::string motor_state_topic_;            // Topic to publish motor states
+    std::string desired_position_topic_;       // Topic to subscribe to desired motor positions
 
-    rclcpp::Publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr publisher_;
-    rclcpp::Subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr subscription_;
-    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr publisher_;    // Publisher for motor positions
+    rclcpp::Subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>::SharedPtr subscription_;  // Subscriber for desired positions
+    rclcpp::TimerBase::SharedPtr timer_;       // Timer for publishing state
 
     HandDriver()
         : Node("hand_driver"),
@@ -41,8 +41,8 @@ public:
           motor_state_topic_(this->declare_parameter<std::string>("motor_state_topic", "motor_state")),
           desired_position_topic_(this->declare_parameter<std::string>("desired_position_topic", "desired_position"))
     {
-        hand_ = std::make_shared<Hand>(serial_port_, baudrate_, protocol_version_);
-        hand_->setSerialPortLowLatency(serial_port_);
+        hand_ = std::make_shared<Hand>(serial_port_, baudrate_, protocol_version_); // Initialize Hand
+        hand_->setSerialPortLowLatency(serial_port_);   // Set serial port to low latency
         if (!hand_->initialize())
         {
             throw std::runtime_error("Error: Hand not initialized");
@@ -52,6 +52,8 @@ public:
         {
             throw std::runtime_error("Error: Motor IDs parameter is empty");
         }
+
+        // Add motors based on their IDs
         for (const auto &id : motor_ids_)
         {
             if (id <= 0 || id >= 255)
@@ -61,27 +63,30 @@ public:
             }
             if (id > 30 && id < 34)
             {
-                hand_->addWristMotor(id);
+                hand_->addWristMotor(id);   // Add wrist motor
             }
             if (id > 33 && id < 39)
             {
-                hand_->addFingerMotor(id);
+                hand_->addFingerMotor(id);  // Add finger motor
             }
         }
 
+        // Create publisher for motor state
         publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>(motor_state_topic_, 1);
 
+        // Create subscription to desired motor positions
         subscription_ = this->create_subscription<uclv_seed_robotics_ros_interfaces::msg::MotorPositions>(
             desired_position_topic_, 1,
             std::bind(&HandDriver::topic_callback, this, std::placeholders::_1));
 
-        // Timer
+        // Timer to periodically publish the motor states
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(millisecondsTimer_),
             std::bind(&HandDriver::publish_state, this));
     }
 
 private:
+    // Function to publish motor states
     void publish_state()
     {
         std::vector<uint8_t> motor_ids_uint8t_vec;
@@ -94,7 +99,7 @@ private:
         std::vector<uint32_t> motor_pos;
         try
         {
-            motor_pos = hand_->readMotorsPositions(motor_ids_uint8t_vec);
+            motor_pos = hand_->readMotorsPositions(motor_ids_uint8t_vec);   // Read motor positions
         }
         catch (...)
         {
@@ -102,6 +107,7 @@ private:
             return;
         }
 
+        // Create message and populate with motor positions and IDs
         auto message = uclv_seed_robotics_ros_interfaces::msg::MotorPositions();
         message.positions.resize(motor_pos.size());
         message.ids = motor_ids_uint8t_vec;
@@ -111,9 +117,10 @@ private:
             message.positions[i] = static_cast<float>(motor_pos[i]);
         }
 
-        publisher_->publish(message);
+        publisher_->publish(message);   // Publish motor positions
     }
 
+    // Callback function to handle incoming desired positions
     void topic_callback(const uclv_seed_robotics_ros_interfaces::msg::MotorPositions::SharedPtr pos)
     {
         for (size_t i = 0; i < pos->ids.size(); ++i)
@@ -121,6 +128,7 @@ private:
             auto id = pos->ids[i];
             auto position = pos->positions[i];
 
+            // Check if the desired position is within the valid threshold range
             if (position < motor_thresholds_[0] || position > motor_thresholds_[1])
             {
                 RCLCPP_ERROR(this->get_logger(), "Position %f for motor ID %d out of range [%ld, %ld]", position, id, motor_thresholds_[0], motor_thresholds_[1]);
@@ -130,7 +138,7 @@ private:
 
         try
         {
-            hand_->moveMotors(pos->ids, pos->positions);
+            hand_->moveMotors(pos->ids, pos->positions);   // Move motors to the desired positions
         }
         catch (...)
         {
@@ -143,7 +151,6 @@ private:
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-
     try
     {
         auto hand_driver_node = std::make_shared<HandDriver>();
@@ -155,7 +162,6 @@ int main(int argc, char *argv[])
         rclcpp::shutdown();
         return 1;
     }
-
     rclcpp::shutdown();
     return 0;
 }
