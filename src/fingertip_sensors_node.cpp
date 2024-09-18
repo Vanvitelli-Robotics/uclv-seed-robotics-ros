@@ -3,10 +3,9 @@
 #include <memory>
 
 #include "uclv_dynamixel_utils/colors.hpp"
-
 #include "rclcpp/rclcpp.hpp"
 #include "uclv_seed_robotics_ros_interfaces/msg/fts3_sensors.hpp"
-
+#include "uclv_seed_robotics_ros_interfaces/srv/calibrate.hpp"  // Include the custom service for calibration
 #include "serial/serial.h"
 
 class FingertipSensors : public rclcpp::Node
@@ -36,9 +35,10 @@ public:
     // Topic name for publishing sensor state
     std::string sensor_state_topic_;
 
-    // ROS publisher and timer
+    // ROS publisher, timer, and service
     rclcpp::Publisher<uclv_seed_robotics_ros_interfaces::msg::FTS3Sensors>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Service<uclv_seed_robotics_ros_interfaces::srv::Calibrate>::SharedPtr calibration_service_;
 
     // Constructor
     FingertipSensors()
@@ -55,13 +55,17 @@ public:
         // Create publisher for sensor data
         publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::FTS3Sensors>(sensor_state_topic_, 1);
 
-        // Flush and initialize the sensor
+        // Initialize sensor communication by flushing and sending necessary commands
         sensor_read_->flush();
         write_on_serial("pausedata\r\n");
         sensor_read_->flush();
         write_on_serial("calibrate\r\n");
         write_on_serial("enabletime\r\n");
         write_on_serial("resume\r\n");
+
+        // Create a calibration service
+        calibration_service_ = this->create_service<uclv_seed_robotics_ros_interfaces::srv::Calibrate>(
+            "calibrate", std::bind(&FingertipSensors::handle_calibration, this, std::placeholders::_1, std::placeholders::_2));
 
         // Create a timer to periodically publish sensor state
         timer_ = this->create_wall_timer(
@@ -85,6 +89,30 @@ private:
     {
         sensor_read_->write(cmd);
         sensor_read_->waitByteTimes(100 * cmd.size());
+    }
+
+    // Function to handle calibration requests
+    void handle_calibration(
+        const std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::Calibrate::Request> request,
+        std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::Calibrate::Response> response)
+    {
+        try
+        {
+            // Perform sensor calibration
+            RCLCPP_INFO(this->get_logger(), "Calibrating sensors...");
+            sensor_read_->flush();  // Clear communication buffers
+            write_on_serial("calibrate\r\n");  // Send the calibration command
+            sensor_read_->flush();
+            response->success = true;
+            response->message = "Calibration successful.";
+            RCLCPP_INFO(this->get_logger(), "Calibration completed.");
+        }
+        catch (const std::exception &e)
+        {
+            response->success = false;
+            response->message = std::string("Calibration failed: ") + e.what();
+            RCLCPP_ERROR(this->get_logger(), "Calibration failed: %s", e.what());
+        }
     }
 
     // Function to read and publish sensor data
