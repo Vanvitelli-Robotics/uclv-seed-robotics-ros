@@ -5,7 +5,7 @@
 #include "uclv_dynamixel_utils/colors.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "uclv_seed_robotics_ros_interfaces/msg/fts3_sensors.hpp"
-#include "uclv_seed_robotics_ros_interfaces/srv/calibrate.hpp"  // Include the custom service for calibration
+#include "uclv_seed_robotics_ros_interfaces/srv/calibrate_sensors.hpp"  // Include the custom service for calibration
 #include "serial/serial.h"
 
 class FingertipSensors : public rclcpp::Node
@@ -38,7 +38,7 @@ public:
     // ROS publisher, timer, and service
     rclcpp::Publisher<uclv_seed_robotics_ros_interfaces::msg::FTS3Sensors>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Service<uclv_seed_robotics_ros_interfaces::srv::Calibrate>::SharedPtr calibration_service_;
+    rclcpp::Service<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors>::SharedPtr calibration_service_;
 
     // Constructor
     FingertipSensors()
@@ -64,7 +64,7 @@ public:
         write_on_serial("resume\r\n");
 
         // Create a calibration service
-        calibration_service_ = this->create_service<uclv_seed_robotics_ros_interfaces::srv::Calibrate>(
+        calibration_service_ = this->create_service<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors>(
             "calibrate", std::bind(&FingertipSensors::handle_calibration, this, std::placeholders::_1, std::placeholders::_2));
 
         // Create a timer to periodically publish sensor state
@@ -93,8 +93,8 @@ private:
 
     // Function to handle calibration requests
     void handle_calibration(
-        const std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::Calibrate::Request> request,
-        std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::Calibrate::Response> response)
+        const std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors::Request> request,
+        std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors::Response> response)
     {
         try
         {
