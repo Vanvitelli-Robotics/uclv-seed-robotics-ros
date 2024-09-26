@@ -89,6 +89,7 @@ private:
     // Function to publish motor states
     void publish_state()
     {
+        
         std::vector<uint8_t> motor_ids_uint8t_vec;
         motor_ids_uint8t_vec.reserve(motor_ids_.size());
         for (size_t i = 0; i < motor_ids_.size(); i++)
@@ -109,6 +110,7 @@ private:
 
         // Create message and populate with motor positions and IDs
         auto message = uclv_seed_robotics_ros_interfaces::msg::MotorPositions();
+        message.header.stamp = rclcpp::Clock{}.now();  // Get current time
         message.positions.resize(motor_pos.size());
         message.ids = motor_ids_uint8t_vec;
 
