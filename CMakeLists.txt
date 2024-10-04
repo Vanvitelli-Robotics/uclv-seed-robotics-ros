@@ -15,6 +15,8 @@ find_package(rclcpp REQUIRED)
 find_package(uclv_dynamixel_utils REQUIRED)
 find_package(uclv_seed_robotics_ros_interfaces REQUIRED)
 find_package(serial REQUIRED)
+find_package(std_srvs REQUIRED)
+
 
 
 add_executable(hand_driver src/hand_driver_node.cpp)
@@ -32,6 +34,7 @@ ament_target_dependencies(
   "uclv_seed_robotics_ros_interfaces"
   "uclv_dynamixel_utils"
   "serial"
+  "std_srvs"
 )
 
 install(TARGETS 

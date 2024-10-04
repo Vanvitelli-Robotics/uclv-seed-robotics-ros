@@ -5,7 +5,7 @@
 #include "uclv_dynamixel_utils/colors.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "uclv_seed_robotics_ros_interfaces/msg/fts3_sensors.hpp"
-#include "uclv_seed_robotics_ros_interfaces/srv/calibrate_sensors.hpp"  // Include the custom service for calibration
+#include "std_srvs/srv/trigger.hpp"
 #include "serial/serial.h"
 
 class FingertipSensors : public rclcpp::Node
@@ -14,11 +14,11 @@ public:
     rclcpp::Time time;
 
     // Parameters
-    int millisecondsTimer_;  // Timer duration for publishing sensor data
-    std::string serial_port_;  // Serial port for communication with the sensors
-    int baudrate_;  // Baud rate for serial communication
-    uint32_t serial_timeout_ = 1000;  // Timeout for serial communication
-    bool timestamp = false;  // Flag to check if the sensor data contains a timestamp
+    int millisecondsTimer_;          // Timer duration for publishing sensor data
+    std::string serial_port_;        // Serial port for communication with the sensors
+    int baudrate_;                   // Baud rate for serial communication
+    uint32_t serial_timeout_ = 1000; // Timeout for serial communication
+    bool timestamp = false;          // Flag to check if the sensor data contains a timestamp
 
     // Serial communication objects
     std::shared_ptr<serial::Serial> sensor_read_;
@@ -33,27 +33,32 @@ public:
     geometry_msgs::msg::Vector3 vec;
 
     // Topic name for publishing sensor state
-    std::string sensor_state_topic_;
+    std::string sensor_state_topic_name_;
+    std::string calibrate_service_name_;
 
     // ROS publisher, timer, and service
     rclcpp::Publisher<uclv_seed_robotics_ros_interfaces::msg::FTS3Sensors>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Service<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors>::SharedPtr calibration_service_;
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr calibrate_service_;
 
     // Constructor
     FingertipSensors()
         : Node("fingertip_sensors"),
-          millisecondsTimer_(this->declare_parameter<int>("millisecondsTimer", 2)),
-          serial_port_(this->declare_parameter<std::string>("serial_port", "/dev/ttyUSB1")),
-          baudrate_(this->declare_parameter<int>("baudrate", 1000000)),
-          sensor_state_topic_(this->declare_parameter<std::string>("sensor_state_topic", "sensor_state"))
+          millisecondsTimer_(this->declare_parameter<int>("millisecondsTimer", 0)),
+          serial_port_(this->declare_parameter<std::string>("serial_port", std::string())),
+          baudrate_(this->declare_parameter<int>("baudrate", 0)),
+          sensor_state_topic_name_(this->declare_parameter<std::string>("sensor_state_topic", std::string())),
+          calibrate_service_name_(this->declare_parameter<std::string>("calibrate_service_name", std::string()))
     {
+
+        check_parameters();
+
         // Set serial port to low latency
         setSerialPortLowLatency(serial_port_);
         sensor_read_ = std::make_shared<serial::Serial>(serial_port_, baudrate_, serial::Timeout::simpleTimeout(serial_timeout_));
 
         // Create publisher for sensor data
-        publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::FTS3Sensors>(sensor_state_topic_, 1);
+        publisher_ = this->create_publisher<uclv_seed_robotics_ros_interfaces::msg::FTS3Sensors>(sensor_state_topic_name_, 1);
 
         // Initialize sensor communication by flushing and sending necessary commands
         sensor_read_->flush();
@@ -64,8 +69,8 @@ public:
         write_on_serial("resume\r\n");
 
         // Create a calibration service
-        calibration_service_ = this->create_service<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors>(
-            "calibrate", std::bind(&FingertipSensors::handle_calibration, this, std::placeholders::_1, std::placeholders::_2));
+        calibrate_service_ = this->create_service<std_srvs::srv::Trigger>(
+            calibrate_service_name_, std::bind(&FingertipSensors::handle_calibration, this, std::placeholders::_1, std::placeholders::_2));
 
         // Create a timer to periodically publish sensor state
         timer_ = this->create_wall_timer(
@@ -74,6 +79,67 @@ public:
     }
 
 private:
+    void check_parameters()
+    {
+        auto check_string_parameter = [this](const std::string &param_name, const std::string &value)
+        {
+            if (value.empty())
+            {
+                RCLCPP_ERROR(this->get_logger(), "Parameter '%s' is missing or empty. Please provide a valid value.", param_name.c_str());
+                rclcpp::shutdown();
+                throw std::runtime_error("Invalid or missing parameter: '" + param_name + "'");
+            }
+        };
+
+        auto check_double_parameter = [this](const std::string &param_name, const double &value)
+        {
+            if (value != 0.0)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Parameter '%s' is missing or empty. Please provide a valid vector.", param_name.c_str());
+                rclcpp::shutdown();
+                throw std::runtime_error("Invalid or missing parameter: '" + param_name + "'");
+            }
+        };
+
+        auto check_vector_int_parameter = [this](const std::string &param_name, const std::vector<int64_t> &value)
+        {
+            if (value.empty())
+            {
+                RCLCPP_ERROR(this->get_logger(), "Parameter '%s' is missing or empty. Please provide a valid vector.", param_name.c_str());
+                rclcpp::shutdown();
+                throw std::runtime_error("Invalid or missing parameter: '" + param_name + "'");
+            }
+        };
+
+        auto check_vector_string_parameter = [this](const std::string &param_name, const std::vector<std::string> &value)
+        {
+            if (value.empty())
+            {
+                RCLCPP_ERROR(this->get_logger(), "Parameter '%s' is missing or empty. Please provide a valid vector.", param_name.c_str());
+                rclcpp::shutdown();
+                throw std::runtime_error("Invalid or missing parameter: '" + param_name + "'");
+            }
+        };
+
+        auto check_int_parameter = [this](const std::string &param_name, const int &value)
+        {
+            if (value == 0)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Parameter '%s' is missing or empty. Please provide a valid vector.", param_name.c_str());
+                rclcpp::shutdown();
+                throw std::runtime_error("Invalid or missing parameter: '" + param_name + "'");
+            }
+        };
+
+        check_int_parameter("millisecondsTimer", millisecondsTimer_);
+        check_string_parameter("serial_port", serial_port_);
+        check_int_parameter("baudrate", baudrate_);
+        check_string_parameter("sensor_state_topic", sensor_state_topic_name_);
+        check_string_parameter("calibrate_service_name", calibrate_service_name_);
+
+        RCLCPP_INFO(this->get_logger(), "All required parameters are set correctly.");
+    }
+
     // Function to set the serial port to low latency mode
     void setSerialPortLowLatency(const std::string &serial_port)
     {
@@ -93,15 +159,15 @@ private:
 
     // Function to handle calibration requests
     void handle_calibration(
-        const std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors::Request> request,
-        std::shared_ptr<uclv_seed_robotics_ros_interfaces::srv::CalibrateSensors::Response> response)
+        const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+        std::shared_ptr<std_srvs::srv::Trigger::Response> response)
     {
         try
         {
             // Perform sensor calibration
             RCLCPP_INFO(this->get_logger(), "Calibrating sensors...");
-            sensor_read_->flush();  // Clear communication buffers
-            write_on_serial("calibrate\r\n");  // Send the calibration command
+            sensor_read_->flush();            // Clear communication buffers
+            write_on_serial("calibrate\r\n"); // Send the calibration command
             sensor_read_->flush();
             response->success = true;
             response->message = "Calibration successful.";
@@ -120,7 +186,7 @@ private:
     {
         // Create a new message
         auto message = uclv_seed_robotics_ros_interfaces::msg::FTS3Sensors();
-        message.header.stamp = rclcpp::Clock{}.now();  // Get current time
+        message.header.stamp = rclcpp::Clock{}.now(); // Get current time
 
         // Read data from the sensor
         line = sensor_read_->readline();
@@ -140,7 +206,7 @@ private:
         {
             tokens.push_back(token);
         }
-        tokens.pop_back();  // Remove any empty token at the end
+        tokens.pop_back(); // Remove any empty token at the end
 
         // Check if there is a timestamp in the data
         if (tokens.size() == 18)
@@ -167,7 +233,7 @@ private:
                 vec.z = std::stof(fz);
                 message.forces.push_back(vec);
             }
-            message.ids = ids;  // Assign sensor IDs to the message
+            message.ids = ids; // Assign sensor IDs to the message
         }
 
         // Publish the message
