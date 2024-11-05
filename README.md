@@ -17,16 +17,13 @@ This project provides a driver for controlling the RH8D robotic hand using ROS 2
 - [Usage](#usage)
 - [Nodes](#nodes)
 - [Launch Files](#launch-files)
-- [Configuration Files](#configuration-files)
 - [Contributing](#contributing)
 - [Authors](#authors)
 
 ## Features
 
 - ✅ Compatible with ROS2
-- ✅ Supports multiple nodes
 - ✅ Includes launch files for easy startup
-- ✅ Configuration file support for custom settings
 - ✅ RH8D hand control interface
 - ✅ Integrates custom messages and libraries for robot control
 
@@ -74,9 +71,12 @@ Practical usage examples for the robotic hand controller will be added here.
 This project contains multiple nodes for robotic hand control.
 
 ### Node 1: `hand_driver_node`
-- **Description**: Controls the movements of the RH8D robotic hand throught Dynamixel actuators.
-- **Topics/Subscribers**: Describe the topics this node subscribes to and publishes.
-- **Services**: List any services this node provides.
+More info [here](README/README_hand_driver_node.md).
+### Node 2: `fingertip_sensors_node`
+More info [here](README/README_fingertip_sensors_node.md).
+
+
+
 
 ## Launch Files
 
@@ -90,13 +90,6 @@ This project includes launch files for easier management of nodes.
 ```bash
 ros2 launch uclv_seed_robotics_ros bringup_hand.launch.py
 ```
-
-## Configuration Files
-
-Configuration files are provided to set parameters for the nodes.
-
-### Config File: `hand_config.yaml`
-- **Parameters**: Lists and describes the parameters used by the hand controller.
 
 ## Contributing
 
