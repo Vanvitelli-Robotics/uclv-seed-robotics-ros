@@ -16,8 +16,6 @@ This ROS2 node facilitates communication with a set of fingertip force sensors, 
   - [Services](#services)
   - [Parameters](#parameters)
 - [Examples](#examples)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
@@ -52,13 +50,13 @@ This node is useful in robotics applications requiring precise fingertip force m
 
 1. Clone the repository into your ROS2 workspace:
    ```bash
-   cd ~/ros2_ws/src
-   git clone https://github.com/yourusername/fingertip_sensors_node.git
+   cd /path/to/your/ros2/workspace
+   git clone https://github.com/Vanvitelli-Robotics/uclv-seed-robotics-ros.git
    ```
 
 2. Build the workspace:
    ```bash
-   cd ~/ros2_ws
+   cd /path/to/your/ros2/workspace
    colcon build
    ```
 
@@ -75,7 +73,7 @@ This node is useful in robotics applications requiring precise fingertip force m
 
 To run the node:
 ```bash
-ros2 run fingertip_sensors_node fingertip_sensors
+ros2 run uclv_seed_robotics fingertip_sensors_node
 ```
 
 ### Subscribing Topics
@@ -105,14 +103,3 @@ Example of calling the calibration service:
 ros2 service call /calibrate_sensors std_srvs/srv/Trigger
 ```
 
----
-
-## Contributing
-
-Feel free to open a pull request or issue on the repository.
-
----
-
-## License
-
-This project is licensed under the MIT License.
