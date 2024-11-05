@@ -15,8 +15,6 @@ This ROS2 node is responsible for controlling the positions of hand motors throu
   - [Publishing Topics](#publishing-topics)
   - [Parameters](#parameters)
 - [Examples](#examples)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
@@ -48,13 +46,13 @@ The `HandDriver` node manages communication with multiple motors on a robotic ha
 
 1. Clone the repository into your ROS2 workspace:
    ```bash
-   cd ~/ros2_ws/src
-   git clone https://github.com/yourusername/hand_driver_node.git
+   cd /path/to/your/ros2/workspace
+   git clone https://github.com/Vanvitelli-Robotics/uclv-seed-robotics-ros.git
    ```
 
 2. Build the workspace:
    ```bash
-   cd ~/ros2_ws
+   cd /path/to/your/ros2/workspace
    colcon build
    ```
 
@@ -71,7 +69,7 @@ The `HandDriver` node manages communication with multiple motors on a robotic ha
 
 To run the node:
 ```bash
-ros2 run hand_driver_node hand_driver
+ros2 run uclv_seed_robotics_ros hand_driver_node
 ```
 
 ### Subscribing Topics
@@ -97,17 +95,5 @@ ros2 run hand_driver_node hand_driver
 
 Example service call for moving the motors to desired positions:
 ```bash
-ros2 topic pub /desired_position_topic uclv_seed_robotics_ros_interfaces/msg/MotorPositions
+ros2 topic pub /cmd/positions uclv_seed_robotics_ros_interfaces/msg/MotorPositions "{ids: [31, 32, 33, 34, 35, 36, 37, 38], positions: [100, 2000, 2000, 100, 100, 100, 100, 100]}"
 ```
-
----
-
-## Contributing
-
-Feel free to open a pull request or an issue on the repository.
-
----
-
-## License
-
-This project is licensed under the MIT License.
